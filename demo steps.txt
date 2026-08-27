@@ -1,0 +1,12 @@
+*steps to follow during demo*
+
+venv\Scripts\activate
+OPENAI_API_KEY=YOUR_KEY_HERE
+GROQ_API_KEY=YOUR_KEY_HERE
+
+
+
+
+
+
+

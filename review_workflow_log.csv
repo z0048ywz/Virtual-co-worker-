@@ -1,0 +1,37 @@
+timestamp,reviewer,action,review_comments,question,filenames,confidence_percent,selected_model,mode_used,summary_preview
+2026-08-05T15:51:15.178625,Reviewer_1,Rejected,Still LLM is not working,what is in Specification?,"Risk_Assessment.docx, Specifications.pdf, Specifications.txt",78,GPT (available version),Mock (fallback),"The uploaded document(s) describe industrial equipment operation, maintenance, technical constraints, and risk/compliance considerations.
+
+Question considered: what is in Specification?
+
+Context preview: --- Document: Risk_Assessment.docx --- Risk Assessment Report – Compressor Upgrade Project: Hydr..."
+2026-08-14T05:49:22.866404,Reviewer_1,Approved,Awesome result,summarize the document in one line ,"Specifications.pdf, Specifications.txt, Risk_Assessment.docx",70,Groq Llama,Real LLM,"The document is a collection of technical specifications and risk assessments for the Hydrogen Compressor Upgrade project.
+
+One-line summary: The Hydrogen Compressor Upgrade project aims to improve availability, reduce vibration trips, and increase flow stability by upgrading the compressor system i..."
+2026-08-18T05:08:30.527735,Reviewer_1,Rejected,LLM not working,I want to create a BFP Specification based on customer Specification based on the info in the data base,"Sec 01 Design Basis_V.docx, 62OP43272_U1_643100002_-.pdf, E1 BFP Design Datasheet revA.pdf",94,Claude (simulated),Mock (fallback),"The uploaded document(s) describe industrial equipment operation, maintenance, technical constraints, and risk/compliance considerations.
+
+Question considered: I want to create a BFP Specification based on customer Specification based on the info in the data base
+
+Context preview: --- Document: Sec ..."
+2026-08-27T13:40:36.047770,Reviewer_1,Rejected,Rejected,Can you Create BFP Specification based on customer specification furnished? Past Project information furnished here with,"Boiler Feed Pump Specification.pdf, Customer Requirement.docx, Other Project output Comp Data BFP rev-.pdf",91,Claude (simulated),Mock (fallback),"The uploaded document(s) describe industrial equipment operation, maintenance, technical constraints, and risk/compliance considerations.
+
+Question considered: Can you Create BFP Specification based on customer specification furnished? Past Project information furnished here with
+
+Context preview: -..."
+2026-08-27T15:21:27.206948,Reviewer_1,Rejected,not ok,Create a BFP specification using customer specification and sample past project BFP RFQs ,"Boiler Feed Pump Specification.pdf, Customer Requirement.docx, Other Project output Comp Data BFP rev-.pdf",83,Claude (simulated),Real LLM,"**Answer**
+
+Below is a concise Boiler‑Feed Pump (BFP) specification that merges the technical requirements from the sample “Purchase Specification for Boiler Feed Pumps – 2X100%” with the customer‑specific details provided in the “Customer Requirement” document.  The specification is written in a fo..."
+2026-08-27T15:23:24.460326,Reviewer_1,Approved,Looks ok to me,Create a BFP specification using customer specification and sample past project BFP RFQs ,"Boiler Feed Pump Specification.pdf, Customer Requirement.docx, Other Project output Comp Data BFP rev-.pdf",83,Claude (simulated),Real LLM,"**Boiler Feed Pump (BFP) Specification – Draft (Based on Boiler Feed Pump Specification.pdf & Customer Requirement.docx)**  
+
+| Item | Specification |
+|------|---------------|
+| **Pump Manufacturer** | To be supplied by vendor (must meet IEC & ASTM/EN/DIN/JIS standards) |
+| **Model / Size** | Centri..."
+2026-08-27T15:29:14.890537,Reviewer_1,Approved,Reviewed and found ok,Create a BFP specification using customer specification and sample past project BFP RFQs ,"Boiler Feed Pump Specification.pdf, Customer Requirement.docx, Other Project output Comp Data BFP rev-.pdf",73,Claude (simulated),Real LLM,"**Answer**
+
+Below is a concise Boiler‑Feed Pump (BFP) specification that merges the customer’s high‑level requirements (PH‑boiler tie‑in, CC‑boiler, etc.) with the detailed technical and performance criteria from the sample past‑project BFP RFQ (the “Boiler Feed Pump Specification” document).  All i..."
+2026-08-27T15:32:13.057413,Reviewer_1,Approved,Looks good we can proceed for SCM submission,Create a BFP specification using customer specification and sample past project BFP RFQs ,"Boiler Feed Pump Specification.pdf, Customer Requirement.docx, Other Project output Comp Data BFP rev-.pdf",83,Claude (simulated),Real LLM,"**Boiler Feed Pump (BFP) Specification – Integrated Customer & Past‑Project RFQ**
+
+**1. Scope & Application**  
+- Two identical centrifugal multistage ring‑section BFPs (2 × 100 %) for the Pre‑Heater (PH) boiler feed line.  
+- Pumped fluid: Feed water & under‑aerated water (start‑up).  
+- Location: ..."

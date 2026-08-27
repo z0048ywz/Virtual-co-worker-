@@ -1,0 +1,8 @@
+timestamp,Upload works for PDF/DOCX/TXT,Text extraction works,Document stats shown,Agent decision shown,Summary shown,Confidence shown with progress bar,Approve action works,Reject action works,Need Changes action works
+2026-08-05T15:51:36.658255,Pass,Pass,Pass,Fail,Pass,Pass,Pass,Pass,Pass
+2026-08-14T05:49:55.236002,Pass,Pass,Pass,Pass,Pass,Pass,Pass,Pass,Pass
+2026-08-18T05:08:53.630518,Pass,Pass,Pass,Fail,Pass,Pass,Pass,Pass,Pass
+2026-08-27T13:41:10.139161,Pass,Pass,Pass,Pass,Pass,Pass,Pass,Pass,Pass
+2026-08-27T15:23:56.372028,Pass,Pass,Pass,Pass,Pass,Pass,Pass,Pass,Pass
+2026-08-27T15:29:32.195005,Pass,Pass,Pass,Pass,Pass,Pass,Pass,Pass,Pass
+2026-08-27T15:32:23.577009,Pass,Pass,Pass,Pass,Pass,Pass,Pass,Pass,Pass

@@ -1,0 +1,38 @@
+Project: Hydrogen Compressor Upgrade
+Document Type: Technical Specification
+Version: 1.2
+Date: 2026-02-10
+
+1. Scope
+This document defines requirements for upgrading the hydrogen compressor system in Unit B.
+The target is to improve availability, reduce vibration trips, and increase flow stability.
+
+2. Design Requirements
+- Rated flow: 12,000 Nm3/h
+- Suction pressure: 18 bar
+- Discharge pressure: 42 bar
+- Max vibration velocity: 4.5 mm/s RMS
+- Bearing temperature alarm: 85 C
+- Bearing temperature trip: 95 C
+
+3. Instrumentation
+- Vibration probes on DE and NDE bearings
+- Redundant pressure transmitters at suction and discharge
+- RTDs for bearing and lube oil temperatures
+- Flow meter with 1-second sampling interval
+
+4. Risk and Compliance
+- Risk: Seal gas contamination may cause premature wear.
+- Mitigation: Install dual-stage filtration and weekly gas quality checks.
+- Compliance: IEC 60034 and plant safety standard PS-118 shall be followed.
+- Cybersecurity controls for PLC communication must align with internal policy.
+
+5. Commissioning
+- Pre-start checks for lube oil pressure, cooling water flow, and interlock logic.
+- Perform no-load test for 2 hours and full-load test for 8 hours.
+- Acceptance criteria: no trips, vibration < 4.5 mm/s, stable discharge pressure.
+
+6. Maintenance Strategy
+- Monthly condition monitoring
+- Quarterly alignment verification
+- Annual overhaul planning based on vibration trend and oil analysis
