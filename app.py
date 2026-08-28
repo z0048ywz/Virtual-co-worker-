@@ -18,8 +18,8 @@ except Exception:
 # ---------------------------
 # Page Config
 # ---------------------------
-st.set_page_config(page_title="Virtual Coworker - Final Consolidated MVP", layout="wide")
-st.title("Virtual Coworker (Final Consolidated MVP)")
+st.set_page_config(page_title="Virtual Coworker - MVP", layout="wide")
+st.title("Virtual Coworker (MVP)")
 
 APPROVALS_LOG = "approvals.csv"
 REVIEW_LOG = "review_workflow_log.csv"
@@ -329,7 +329,7 @@ def log_review_action(
 # ---------------------------
 # UI - Inputs
 # ---------------------------
-st.subheader("1) Ask your question")
+st.subheader("1) Hi, How can I help you?")
 
 question = st.text_input(
     "Example: Summarize key technical risks and mitigation actions."
