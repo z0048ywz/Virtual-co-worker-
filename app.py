@@ -487,7 +487,7 @@ try:
 
     st.download_button(
         label="📄 Download Engineering Report PDF",
-        data=pdf_file.getvalue(),
+        data=pdf_file,
         file_name="engineering_report.pdf",
         mime="application/pdf"
     )
