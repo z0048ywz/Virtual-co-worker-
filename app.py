@@ -3,7 +3,6 @@ from io import BytesIO
 from pathlib import Path
 from datetime import datetime
 
-import pandas as pd
 import streamlit as st
 from pypdf import PdfReader
 from docx import Document
@@ -32,7 +31,7 @@ st.title("Engineering Automation with Agentic AI")
 st.caption("IIT Delhi – AI for Future Tech Leaders")
 
 # =====================================================
-# API CLIENT SETUP
+# API CLIENT
 # =====================================================
 
 api_key = None
@@ -60,10 +59,7 @@ def validate_upload(uploaded_file):
 
     ext = Path(uploaded_file.name).suffix.lower()
 
-    if ext not in [".pdf", ".docx", ".txt"]:
-        return False
-
-    return True
+    return ext in [".pdf", ".docx", ".txt"]
 
 
 def parse_pdf(uploaded_file):
@@ -132,10 +128,9 @@ def build_prompt(use_case, question, combined_text):
 Create an executive summary of customer compressor requirements.
 
 Requirements:
-- Minimum words
 - Executive summary style
-- Highlight key technical requirements
-- Mention risks
+- Minimal words
+- Mention key technical risks
 
 Question:
 {question}
@@ -155,7 +150,7 @@ Create a Boiler Feed Pump specification using:
 Generate:
 - technical specification
 - performance requirements
-- compliance requirements
+- procurement-ready engineering summary
 
 Question:
 {question}
@@ -187,10 +182,10 @@ Document:
 Review the deaerator offer.
 
 Tasks:
-- Compare with technical requirements
+- Compare against technical requirements
 - Highlight deviations
 - Mention compliance gaps
-- Summarize salient points
+- Summarize salient technical points
 
 Question:
 {question}
@@ -247,14 +242,12 @@ def generate_llm_summary(use_case, question, combined_text):
 
 def compute_confidence(combined_text):
 
-    score = 0.72
+    score = 72
 
     if len(combined_text) > 3000:
-        score += 0.10
+        score += 10
 
-    score = min(score, 0.95)
-
-    return int(score * 100)
+    return min(score, 95)
 
 
 # =====================================================
@@ -310,7 +303,7 @@ def generate_pdf(
     p.drawString(
         220,
         600,
-        "Knowledge Agent + Validation + Human Approval"
+        "Knowledge Agent + Human Approval"
     )
 
     p.drawString(50, 560, "Generated Date:")
@@ -359,7 +352,7 @@ def generate_pdf(
         y -= 40
 
     # =====================================================
-    # AGENT WORKFLOW
+    # WORKFLOW
     # =====================================================
 
     p.showPage()
@@ -394,7 +387,7 @@ def generate_pdf(
             y -= 40
 
     # =====================================================
-    # EXECUTIVE SUMMARY
+    # SUMMARY
     # =====================================================
 
     p.showPage()
@@ -474,36 +467,6 @@ def generate_pdf(
         datetime.now().strftime("%d-%b-%Y")
     )
 
-    # =====================================================
-    # RAG EVALUATION
-    # =====================================================
-
-    p.showPage()
-
-    p.setFont("Helvetica-Bold", 22)
-
-    p.drawString(50, 760, "RAG EVALUATION RESULTS")
-
-    metrics = [
-        ("Questions Tested", "15"),
-        ("Correct Answers", "14"),
-        ("Citation Accuracy", "93%"),
-        ("Hallucination Rate", "7%"),
-        ("Retrieval Accuracy", "95%")
-    ]
-
-    y = 680
-
-    for k, v in metrics:
-
-        p.setFont("Helvetica-Bold", 13)
-        p.drawString(50, y, k)
-
-        p.setFont("Helvetica", 13)
-        p.drawString(300, y, v)
-
-        y -= 40
-
     p.save()
 
     buffer.seek(0)
@@ -582,10 +545,6 @@ if st.button("Run Analysis"):
 
     combined_text = "\n".join(combined_parts)
 
-    # =====================================================
-    # GENERATE SUMMARY
-    # =====================================================
-
     if use_real_llm:
 
         summary, err = generate_llm_summary(
@@ -621,7 +580,7 @@ if st.button("Run Analysis"):
     )
 
     # =====================================================
-    # AGENT FLOW
+    # DISPLAY
     # =====================================================
 
     st.subheader("Agent Execution Flow")
@@ -630,10 +589,6 @@ if st.button("Run Analysis"):
     st.success("✅ Recommendation Agent Completed")
     st.success("✅ Validation Agent Completed")
     st.warning("⏳ Human Approval Pending")
-
-    # =====================================================
-    # OUTPUT
-    # =====================================================
 
     st.subheader("Knowledge Agent")
 
@@ -656,8 +611,32 @@ if st.button("Run Analysis"):
     st.progress(confidence_pct / 100)
 
     # =====================================================
-    # HUMAN APPROVAL
+    # SAVE SESSION STATE
     # =====================================================
+
+    st.session_state["analysis_complete"] = True
+
+    st.session_state["use_case"] = use_case
+
+    st.session_state["summary"] = summary
+
+    st.session_state["recommendation_text"] = recommendation_text
+
+    st.session_state["validation_text"] = validation_text
+
+    st.session_state["decision_text"] = decision_text
+
+    st.session_state["confidence_pct"] = confidence_pct
+
+    st.session_state["combined_text"] = combined_text
+
+    st.session_state["uploaded_count"] = len(uploaded_files)
+
+# =====================================================
+# HUMAN APPROVAL + PDF
+# =====================================================
+
+if st.session_state.get("analysis_complete"):
 
     st.subheader("Human Approval Agent")
 
@@ -678,24 +657,22 @@ if st.button("Run Analysis"):
         "Approval Comments"
     )
 
-    # =====================================================
-    # PDF GENERATION
-    # =====================================================
-
     if st.button("Generate Executive PDF Report"):
 
         pdf_file = generate_pdf(
-            use_case,
-            summary,
-            recommendation_text,
-            validation_text,
-            decision_text,
+            st.session_state["use_case"],
+            st.session_state["summary"],
+            st.session_state["recommendation_text"],
+            st.session_state["validation_text"],
+            st.session_state["decision_text"],
             reviewer_name,
             approval_status,
             review_comments,
-            confidence_pct,
-            len(uploaded_files),
-            len(combined_text.split())
+            st.session_state["confidence_pct"],
+            st.session_state["uploaded_count"],
+            len(
+                st.session_state["combined_text"].split()
+            )
         )
 
         st.success("PDF generated successfully ✅")
