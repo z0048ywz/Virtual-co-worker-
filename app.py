@@ -149,7 +149,14 @@ Question:
 Document:
 {combined_text[:18000]}
 
-{citation_instruction}
+Always provide citations in this format:
+
+Source:
+<Document Name>
+<Section/Page>
+
+If unavailable, explicitly say:
+"Not found in uploaded documents."
 """
 
     elif use_case == "BFP Specification Generation":
@@ -171,7 +178,14 @@ Question:
 Document:
 {combined_text[:18000]}
 
-{citation_instruction}
+Always provide citations in this format:
+
+Source:
+<Document Name>
+<Section/Page>
+
+If unavailable, explicitly say:
+"Not found in uploaded documents."
 """
 
     elif use_case == "Resume Optimization":
@@ -190,7 +204,14 @@ Question:
 Document:
 {combined_text[:18000]}
 
-{citation_instruction}
+Always provide citations in this format:
+
+Source:
+<Document Name>
+<Section/Page>
+
+If unavailable, explicitly say:
+"Not found in uploaded documents."
 """
 
     elif use_case == "Deaerator Offer Review":
@@ -210,7 +231,14 @@ Question:
 Document:
 {combined_text[:18000]}
 
-{citation_instruction}
+Always provide citations in this format:
+
+Source:
+<Document Name>
+<Section/Page>
+
+If unavailable, explicitly say:
+"Not found in uploaded documents."
 """
 
     return question
@@ -404,7 +432,179 @@ def generate_pdf(
             p.drawString(170, y, "↓")
 
             y -= 40
+
+    # =====================================================
+    # RAG ARCHITECTURE
+    # =====================================================
+
+    p.showPage()
+
+    p.setFont("Helvetica-Bold", 22)
+
+    p.drawString(50, 760, "RAG ARCHITECTURE")
+
+    rag_steps = [
+        "Documents",
+        "Chunking",
+        "Embeddings",
+        "FAISS Vector Store",
+        "Retriever",
+        "LLM",
+        "Grounded Answer",
+        "Human Approval"
+    ]
+
+    y = 680
+
+    for step in rag_steps:
+
+        p.setFont("Helvetica-Bold", 14)
+
+        p.drawString(140, y, step)
+
+        y -= 35
+
+        if step != rag_steps[-1]:
+
+            p.drawString(190, y, "↓")
+
+            y -= 35
             
+    # =====================================================
+    # EVALUATION METHODOLOGY
+    # =====================================================
+
+    p.showPage()
+
+    p.setFont("Helvetica-Bold", 22)
+
+    p.drawString(50, 760, "EVALUATION METHODOLOGY")
+
+    methodology = [
+        "20 test questions created.",
+        "",
+        "Answer is considered correct if:",
+        "- Technical value matches source.",
+        "",
+        "Citation is considered correct if:",
+        "- Source section matches retrieved chunk.",
+        "",
+        "Hallucination:",
+        "- Information generated but absent from source."
+    ]
+
+    y = 680
+
+    for line in methodology:
+
+        p.setFont("Helvetica", 12)
+
+        p.drawString(50, y, line)
+
+        y -= 30
+
+    # =====================================================
+    # SAMPLE RETRIEVAL
+    # =====================================================
+
+    p.showPage()
+
+    p.setFont("Helvetica-Bold", 22)
+
+    p.drawString(50, 760, "SAMPLE RETRIEVAL WITH CITATIONS")
+
+    retrieval_example = [
+        "Question:",
+        "What is dissolved oxygen limit?",
+        "",
+        "Retrieved Chunk:",
+        "ASME PTC 12.3",
+        "Maximum DO ≤ 7 ppb",
+        "",
+        "Final Answer:",
+        "DO ≤ 7 ppb",
+        "",
+        "Citation:",
+        "62OP43284_U1_643090001_-.pdf",
+        "Section 2.7.12"
+    ]
+
+    y = 680
+
+    for line in retrieval_example:
+
+        p.setFont("Helvetica", 12)
+
+        p.drawString(50, y, line)
+
+        y -= 30
+
+    # =====================================================
+    # LLM VS RAG
+    # =====================================================
+
+    p.showPage()
+
+    p.setFont("Helvetica-Bold", 22)
+
+    p.drawString(50, 760, "LLM VS RAG COMPARISON")
+
+    comparisons = [
+        ("DO Limit", "Generic", "7 ppb"),
+        ("Design Temperature", "Incorrect", "200°C"),
+        ("Seal Gas Spec", "Missing", "Available"),
+        ("Citation", "No", "Yes")
+    ]
+
+    y = 680
+
+    p.setFont("Helvetica-Bold", 13)
+
+    p.drawString(50, y, "Question")
+    p.drawString(250, y, "LLM Only")
+    p.drawString(420, y, "RAG")
+
+    y -= 40
+
+    for row in comparisons:
+
+        p.setFont("Helvetica", 12)
+
+        p.drawString(50, y, row[0])
+        p.drawString(250, y, row[1])
+        p.drawString(420, y, row[2])
+
+        y -= 35
+
+    # =====================================================
+    # DEPLOYMENT ROADMAP
+    # =====================================================
+
+    p.showPage()
+
+    p.setFont("Helvetica-Bold", 22)
+
+    p.drawString(50, 760, "ENTERPRISE DEPLOYMENT ROADMAP")
+
+    roadmap = [
+        "Phase 1 - Engineering Specifications",
+        "Phase 2 - Compressor RFQs",
+        "Phase 3 - SharePoint Knowledge Base",
+        "Phase 4 - SAP Integration",
+        "Phase 5 - Enterprise Engineering Copilot"
+    ]
+
+    y = 680
+
+    for item in roadmap:
+
+        p.setFont("Helvetica", 13)
+
+        p.drawString(70, y, item)
+
+        y -= 45
+
+           
     # =====================================================
     # RAG EVALUATION
     # =====================================================
