@@ -28,10 +28,12 @@ st.set_page_config(
 )
 
 st.title("Virtual Co-worker")
-st.caption("IIT Delhi – AI for Future Tech Leaders 
-            Final exam 
-            Track - 2 Built track 
-            Problem - B4 Problem Generative AI knowledge assistant (RAG)")
+st.caption(
+    "IIT Delhi - AI for Future Tech Leaders\n"
+    "Final Exam\n"
+    "Track: 2 Build Track\n"
+    "Problem: B4 - Generative AI Knowledge Assistant (RAG)"
+)
 
 # =====================================================
 # API CLIENT
