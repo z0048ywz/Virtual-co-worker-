@@ -124,15 +124,16 @@ def build_prompt(use_case, question, combined_text):
     
     citation_instruction = """
 
-Provide citations in this format:
+Always provide citations in this format:
 
 Source:
 <Document Name>
 <Page/Section if available>
 
 If information is unavailable, explicitly say:
-"Not found in uploaded documents."if use_case == "Compressor Specification Summary":
+"Not found in uploaded documents."
 """
+
     if use_case == "Compressor Specification Summary":
 
         return f"""
@@ -301,6 +302,45 @@ def compute_confidence(combined_text):
 # PDF GENERATION
 # =====================================================
 
+def draw_wrapped_text(
+    p,
+    text,
+    x,
+    y,
+    max_chars=90,
+    line_height=15
+):
+
+    lines = []
+
+    for paragraph in text.split("\n"):
+
+        while len(paragraph) > max_chars:
+
+            split_index = paragraph.rfind(
+                " ",
+                0,
+                max_chars
+            )
+
+            if split_index == -1:
+                split_index = max_chars
+
+            lines.append(paragraph[:split_index])
+
+            paragraph = paragraph[split_index:].strip()
+
+        lines.append(paragraph)
+
+    for line in lines:
+
+        p.drawString(x, y, line)
+
+        y -= line_height
+
+    return y
+    
+    
 def generate_pdf(
     use_case,
     summary,
@@ -917,11 +957,86 @@ This strategy balanced retrieval relevance with engineering continuity.
         datetime.now().strftime("%d-%b-%Y")
     )
 
+    # =====================================================
+    # REFLECTION
+    # =====================================================
+
+    p.showPage()
+
+    p.setFont("Helvetica-Bold", 22)
+
+    p.drawString(50, 760, "REFLECTION")
+
+    reflection = """
+The most important design decision was implementing Human-in-the-Loop validation rather than relying solely on LLM output.
+
+In an engineering environment, accuracy and accountability are more important than automation.
+
+This reduced hallucinations and improved trust in AI-assisted decisions.
+"""
+
+    y = 680
+
+    for line in reflection.split("\n"):
+
+        p.setFont("Helvetica", 12)
+
+        p.drawString(50, y, line)
+
+        y -= 30
+        
+    # =====================================================
+    # AI USE STATEMENT
+    # =====================================================
+
+    p.showPage()
+
+    p.setFont("Helvetica-Bold", 22)
+
+    p.drawString(50, 760, "AI USE STATEMENT")
+
+    ai_text = """
+Tools Used:
+- OpenAI ChatGPT
+- Groq LLM
+- GitHub Copilot
+
+Used For:
+- Architecture design
+- Code generation
+- Prompt engineering
+- Documentation drafting
+- UI prototyping
+
+Verification:
+All generated outputs were manually reviewed and validated against uploaded engineering documents.
+
+Engineering conclusions were verified before acceptance.
+
+Representative Prompt:
+'Generate a citation-aware engineering summary using uploaded specifications and include hallucination control mechanisms.'
+"""
+
+    y = 680
+
+    for line in ai_text.split("\n"):
+
+        p.setFont("Helvetica", 12)
+
+        p.drawString(50, y, line)
+
+        y -= 25
+
+    # =====================================================
+    # FINALIZE PDF
+    # =====================================================
+
     p.save()
 
     buffer.seek(0)
 
     return buffer
+    
 
 
 # =====================================================
@@ -1035,10 +1150,10 @@ if st.button("Run Analysis"):
 
     st.subheader("Agent Execution Flow")
 
-    st.success("✅ Knowledge Agent Completed")
-    st.success("✅ Recommendation Agent Completed")
-    st.success("✅ Validation Agent Completed")
-    st.warning("⏳ Human Approval Pending")
+    st.success("[DONE] Knowledge Agent Completed")
+    st.success("[DONE] Recommendation Agent Completed")
+    st.success("[DONE] Validation Agent Completed")
+    st.warning("[PENDING] Human Approval Pending")
 
     st.subheader("Knowledge Agent")
 
@@ -1125,7 +1240,7 @@ if st.session_state.get("analysis_complete"):
             )
         )
 
-        st.success("PDF generated successfully ✅")
+        st.success("PDF generated successfully [DONE] ")
 
         st.download_button(
             label="📄 Download Executive Engineering Report",
