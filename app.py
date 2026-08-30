@@ -1,5 +1,4 @@
 import os
-import re
 from io import BytesIO
 from pathlib import Path
 from datetime import datetime
@@ -11,15 +10,19 @@ from docx import Document
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-# Optional Groq import
+# =====================================================
+# Optional Groq Import
+# =====================================================
+
 try:
     from groq import Groq
 except Exception:
     Groq = None
 
-# ---------------------------
-# Page Config
-# ---------------------------
+# =====================================================
+# PAGE CONFIG
+# =====================================================
+
 st.set_page_config(
     page_title="Engineering Automation with Agentic AI",
     layout="wide"
@@ -28,19 +31,14 @@ st.set_page_config(
 st.title("Engineering Automation with Agentic AI")
 st.caption("IIT Delhi – AI for Future Tech Leaders")
 
-APPROVALS_LOG = "approvals.csv"
-REVIEW_LOG = "review_workflow_log.csv"
-UAT_LOG = "uat_results.csv"
-
-# ---------------------------
-# API Client Setup
-# ---------------------------
+# =====================================================
+# API CLIENT SETUP
+# =====================================================
 
 api_key = None
 
 try:
     api_key = st.secrets["GROQ_API_KEY"]
-
 except Exception:
     api_key = os.getenv("GROQ_API_KEY")
 
@@ -54,23 +52,18 @@ if Groq is not None and api_key:
     except Exception:
         client = None
 
-# ---------------------------
-# Helper Functions
-# ---------------------------
-def validate_upload(uploaded_file):
+# =====================================================
+# HELPER FUNCTIONS
+# =====================================================
 
-    if uploaded_file is None:
-        return False, "No file uploaded."
+def validate_upload(uploaded_file):
 
     ext = Path(uploaded_file.name).suffix.lower()
 
     if ext not in [".pdf", ".docx", ".txt"]:
-        return False, "Invalid file type."
+        return False
 
-    if uploaded_file.size == 0:
-        return False, "Uploaded file is empty."
-
-    return True, "Upload validation complete."
+    return True
 
 
 def parse_pdf(uploaded_file):
@@ -82,9 +75,7 @@ def parse_pdf(uploaded_file):
         for p in reader.pages
     ]
 
-    text = "\n".join(text_parts).strip()
-
-    return text
+    return "\n".join(text_parts).strip()
 
 
 def parse_docx(uploaded_file):
@@ -129,39 +120,22 @@ def parse_document(uploaded_file):
     return ""
 
 
-def generate_mock_summary(question, combined_text):
+# =====================================================
+# DYNAMIC PROMPTS
+# =====================================================
 
-    preview = combined_text[:500]
+def build_prompt(use_case, question, combined_text):
 
-    return f"""
-Engineering Summary
+    if use_case == "Compressor Specification Summary":
 
-Question:
-{question}
+        return f"""
+Create an executive summary of customer compressor requirements.
 
-Key Findings:
-- Industrial engineering content detected
-- Maintenance and operational context identified
-- Risk and compliance indicators present
-
-Document Preview:
-{preview}
-"""
-
-
-def generate_llm_summary(question, combined_text):
-
-    if client is None:
-        return None, "LLM client unavailable."
-
-    prompt = f"""
-You are an engineering AI assistant.
-
-Tasks:
-1. Answer the question
-2. Generate concise engineering summary
-3. Provide bullet point findings
-4. Mention risks if any
+Requirements:
+- Minimum words
+- Executive summary style
+- Highlight key technical requirements
+- Mention risks
 
 Question:
 {question}
@@ -170,6 +144,79 @@ Document:
 {combined_text[:18000]}
 """
 
+    elif use_case == "BFP Specification Generation":
+
+        return f"""
+Create a Boiler Feed Pump specification using:
+- customer specification
+- sample RFQs
+- past project references
+
+Generate:
+- technical specification
+- performance requirements
+- compliance requirements
+
+Question:
+{question}
+
+Document:
+{combined_text[:18000]}
+"""
+
+    elif use_case == "Resume Optimization":
+
+        return f"""
+Optimize the resume to match the job description.
+
+Requirements:
+- Preserve original format
+- Highlight changes
+- Improve ATS compatibility
+
+Question:
+{question}
+
+Document:
+{combined_text[:18000]}
+"""
+
+    elif use_case == "Deaerator Offer Review":
+
+        return f"""
+Review the deaerator offer.
+
+Tasks:
+- Compare with technical requirements
+- Highlight deviations
+- Mention compliance gaps
+- Summarize salient points
+
+Question:
+{question}
+
+Document:
+{combined_text[:18000]}
+"""
+
+    return question
+
+
+# =====================================================
+# LLM SUMMARY
+# =====================================================
+
+def generate_llm_summary(use_case, question, combined_text):
+
+    if client is None:
+        return None, "LLM unavailable"
+
+    prompt = build_prompt(
+        use_case,
+        question,
+        combined_text
+    )
+
     try:
 
         response = client.chat.completions.create(
@@ -177,7 +224,7 @@ Document:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a reliable engineering assistant."
+                    "content": "You are an engineering AI assistant."
                 },
                 {
                     "role": "user",
@@ -190,10 +237,15 @@ Document:
         return response.choices[0].message.content.strip(), None
 
     except Exception as e:
+
         return None, str(e)
 
 
-def compute_confidence(question, combined_text, summary):
+# =====================================================
+# CONFIDENCE
+# =====================================================
+
+def compute_confidence(combined_text):
 
     score = 0.72
 
@@ -202,30 +254,15 @@ def compute_confidence(question, combined_text, summary):
 
     score = min(score, 0.95)
 
-    return {
-        "score": round(score, 2),
-        "label": "High" if score >= 0.80 else "Medium",
-        "reason": "Semantic relevance detected"
-    }
+    return int(score * 100)
 
 
-def append_row_csv(file_path, row_dict):
-
-    if os.path.exists(file_path):
-
-        df = pd.read_csv(file_path)
-
-        df = pd.concat(
-            [df, pd.DataFrame([row_dict])],
-            ignore_index=True
-        )
-
-    else:
-        df = pd.DataFrame([row_dict])
-
-    df.to_csv(file_path, index=False)
+# =====================================================
+# PDF GENERATION
+# =====================================================
 
 def generate_pdf(
+    use_case,
     summary,
     recommendation,
     validation,
@@ -245,59 +282,71 @@ def generate_pdf(
     width, height = letter
 
     # =====================================================
-    # PAGE 1 — COVER PAGE
+    # COVER PAGE
     # =====================================================
 
     p.setFillColorRGB(0.0, 0.2, 0.5)
     p.rect(0, 730, width, 60, fill=1)
 
     p.setFillColorRGB(1, 1, 1)
+
     p.setFont("Helvetica-Bold", 24)
-    p.drawString(50, 750, "Engineering Automation with Agentic AI")
+
+    p.drawString(
+        50,
+        750,
+        "Engineering Automation with Agentic AI"
+    )
 
     p.setFillColorRGB(0, 0, 0)
 
-    p.setFont("Helvetica-Bold", 18)
-    p.drawString(50, 650, "Boiler Feed Pump Specification Report")
+    p.setFont("Helvetica-Bold", 20)
+
+    p.drawString(50, 650, use_case)
 
     p.setFont("Helvetica", 12)
 
     p.drawString(50, 600, "Generated using:")
-    p.drawString(220, 600, "Knowledge Agent + RAG + Human Approval")
-
-    p.drawString(50, 560, "Project:")
-    p.drawString(220, 560, "Boiler Feed Pump Package")
-
-    p.drawString(50, 520, "Generated Date:")
     p.drawString(
         220,
-        520,
+        600,
+        "Knowledge Agent + Validation + Human Approval"
+    )
+
+    p.drawString(50, 560, "Generated Date:")
+
+    p.drawString(
+        220,
+        560,
         datetime.now().strftime("%d-%b-%Y")
     )
 
-    p.drawString(50, 480, "Prepared by:")
-    p.drawString(220, 480, "Virtual Coworker AI Assistant")
+    p.drawString(50, 520, "Prepared by:")
+    p.drawString(
+        220,
+        520,
+        "Virtual Coworker AI Assistant"
+    )
 
     # =====================================================
-    # PAGE 2 — DASHBOARD
+    # DASHBOARD
     # =====================================================
 
     p.showPage()
 
     p.setFont("Helvetica-Bold", 22)
-    p.drawString(50, 760, "PROJECT DASHBOARD")
 
-    p.setFont("Helvetica", 13)
+    p.drawString(50, 760, "PROJECT DASHBOARD")
 
     dashboard = [
         ("Files Processed", filenames),
-        ("Words Analysed", str(total_words)),
+        ("Words Analysed", total_words),
         ("Confidence Score", f"{confidence_pct}%"),
         ("Recommendation", recommendation),
         ("Approval Status", approval_status)
     ]
 
-    y = 700
+    y = 680
 
     for k, v in dashboard:
 
@@ -305,17 +354,18 @@ def generate_pdf(
         p.drawString(50, y, f"{k}:")
 
         p.setFont("Helvetica", 13)
-        p.drawString(250, y, str(v))
+        p.drawString(280, y, str(v))
 
         y -= 40
 
     # =====================================================
-    # PAGE 3 — AGENT WORKFLOW
+    # AGENT WORKFLOW
     # =====================================================
 
     p.showPage()
 
     p.setFont("Helvetica-Bold", 22)
+
     p.drawString(50, 760, "AGENTIC AI WORKFLOW")
 
     workflow = [
@@ -332,24 +382,26 @@ def generate_pdf(
     for step in workflow:
 
         p.setFont("Helvetica-Bold", 15)
+
         p.drawString(120, y, step)
 
         y -= 40
 
         if step != workflow[-1]:
+
             p.drawString(170, y, "↓")
+
             y -= 40
 
     # =====================================================
-    # PAGE 4 — EXECUTIVE SUMMARY
+    # EXECUTIVE SUMMARY
     # =====================================================
 
     p.showPage()
 
     p.setFont("Helvetica-Bold", 22)
-    p.drawString(50, 760, "EXECUTIVE SUMMARY")
 
-    y = 700
+    p.drawString(50, 760, "EXECUTIVE SUMMARY")
 
     sections = [
         ("Knowledge Agent", summary),
@@ -358,9 +410,12 @@ def generate_pdf(
         ("Decision Agent", decision)
     ]
 
+    y = 700
+
     for title, content in sections:
 
         p.setFont("Helvetica-Bold", 15)
+
         p.drawString(50, y, title)
 
         y -= 25
@@ -383,45 +438,50 @@ def generate_pdf(
                 y -= 15
 
                 if y < 80:
+
                     p.showPage()
+
                     y = 750
 
-        y -= 25
+        y -= 20
 
     # =====================================================
-    # HUMAN APPROVAL PAGE
+    # HUMAN APPROVAL
     # =====================================================
 
     p.showPage()
 
     p.setFont("Helvetica-Bold", 22)
+
     p.drawString(50, 760, "HUMAN REVIEW & APPROVAL")
 
     p.setFont("Helvetica", 13)
 
     p.drawString(50, 680, "Reviewer:")
-    p.drawString(220, 680, reviewer)
+    p.drawString(250, 680, reviewer)
 
     p.drawString(50, 640, "Review Status:")
-    p.drawString(220, 640, approval_status)
+    p.drawString(250, 640, approval_status)
 
     p.drawString(50, 600, "Comments:")
-    p.drawString(220, 600, review_comments)
+    p.drawString(250, 600, review_comments)
 
     p.drawString(50, 560, "Review Date:")
+
     p.drawString(
-        220,
+        250,
         560,
         datetime.now().strftime("%d-%b-%Y")
     )
 
     # =====================================================
-    # AI EVALUATION PAGE
+    # RAG EVALUATION
     # =====================================================
 
     p.showPage()
 
     p.setFont("Helvetica-Bold", 22)
+
     p.drawString(50, 760, "RAG EVALUATION RESULTS")
 
     metrics = [
@@ -444,34 +504,6 @@ def generate_pdf(
 
         y -= 40
 
-    # =====================================================
-    # CONFIDENCE ANALYSIS
-    # =====================================================
-
-    p.showPage()
-
-    p.setFont("Helvetica-Bold", 22)
-    p.drawString(50, 760, "CONFIDENCE ANALYSIS")
-
-    confidence_items = [
-        ("Document Coverage", "90%"),
-        ("Semantic Match", "84%"),
-        ("Citation Availability", "100%"),
-        ("Overall Confidence", f"{confidence_pct}%")
-    ]
-
-    y = 680
-
-    for k, v in confidence_items:
-
-        p.setFont("Helvetica-Bold", 13)
-        p.drawString(50, y, k)
-
-        p.setFont("Helvetica", 13)
-        p.drawString(300, y, v)
-
-        y -= 40
-
     p.save()
 
     buffer.seek(0)
@@ -479,46 +511,41 @@ def generate_pdf(
     return buffer
 
 
-# ---------------------------
-# UI Inputs
-# ---------------------------
-st.subheader("Hi, How can I help you?")
+# =====================================================
+# UI
+# =====================================================
 
-question = st.text_input(
-    "Example: Summarize technical risks and mitigation actions"
+st.subheader("Hi 👋 How can I help you today?")
+
+use_case = st.selectbox(
+    "Select Use Case",
+    [
+        "Compressor Specification Summary",
+        "BFP Specification Generation",
+        "Resume Optimization",
+        "Deaerator Offer Review"
+    ]
 )
 
-st.subheader("2) Upload Engineering Documents")
+question = st.text_input(
+    "Enter your question"
+)
 
 uploaded_files = st.file_uploader(
-    "Upload PDF / DOCX / TXT",
+    "Upload Documents",
     type=["pdf", "docx", "txt"],
     accept_multiple_files=True
 )
 
-st.subheader("3) Summary Mode")
-
 use_real_llm = st.toggle(
     "Use Real LLM Mode",
-    value=False
+    value=True
 )
 
-mode_name = (
-    "Real LLM Mode"
-    if use_real_llm
-    else "Mock Mode"
-)
+# =====================================================
+# RUN ANALYSIS
+# =====================================================
 
-st.info(f"Current Mode: {mode_name}")
-
-if use_real_llm and client is None:
-    st.warning(
-        "Real LLM unavailable. Falling back to Mock mode."
-    )
-
-# ---------------------------
-# Run Analysis
-# ---------------------------
 if st.button("Run Analysis"):
 
     if not question.strip():
@@ -539,10 +566,10 @@ if st.button("Run Analysis"):
 
         for f in uploaded_files:
 
-            valid, msg = validate_upload(f)
+            if not validate_upload(f):
 
-            if not valid:
-                st.error(msg)
+                st.error("Invalid file")
+
                 st.stop()
 
             text = parse_document(f)
@@ -553,82 +580,33 @@ if st.button("Run Analysis"):
                     f"\n\n--- {f.name} ---\n{text}"
                 )
 
-    if not combined_parts:
-
-        st.error("No text extracted.")
-
-        st.stop()
-
     combined_text = "\n".join(combined_parts)
 
-    st.success("Documents processed successfully ✅")
-
-    # ---------------------------
-    # Generate Summary
-    # ---------------------------
+    # =====================================================
+    # GENERATE SUMMARY
+    # =====================================================
 
     if use_real_llm:
 
-        with st.spinner("Generating AI summary..."):
-
-            summary, err = generate_llm_summary(
-                question,
-                combined_text
-            )
-
-        if err:
-
-            st.warning(f"LLM failed: {err}")
-
-            summary = generate_mock_summary(
-                question,
-                combined_text
-            )
-
-            active_mode = "Mock Fallback"
-
-        else:
-            active_mode = "Real LLM"
-
-    else:
-
-        summary = generate_mock_summary(
+        summary, err = generate_llm_summary(
+            use_case,
             question,
             combined_text
         )
 
-        active_mode = "Mock"
+        if err:
 
-    # ---------------------------
-    # Confidence
-    # ---------------------------
+            st.error(err)
 
-    conf = compute_confidence(
-        question,
-        combined_text,
-        summary
+            st.stop()
+
+    else:
+
+        summary = "Mock summary generated."
+
+    confidence_pct = compute_confidence(
+        combined_text
     )
-
-    confidence_pct = int(conf["score"] * 100)
-
-    # ---------------------------
-    # Agent Flow
-    # ---------------------------
-
-    st.subheader("Agent Execution Flow")
-
-    st.success("✅ Knowledge Agent Completed")
-    st.success("✅ Recommendation Agent Completed")
-    st.success("✅ Validation Agent Completed")
-    st.warning("⏳ Human Approval Pending")
-
-    # ---------------------------
-    # Summary
-    # ---------------------------
-
-    st.subheader("Knowledge Agent")
-
-    st.write(summary)
 
     recommendation_text = "Proceed with engineering review."
 
@@ -639,8 +617,27 @@ if st.button("Run Analysis"):
     decision_text = (
         "Human Review Required"
         if confidence_pct < 80
-        else "Auto Recommendation Possible"
+        else "Approved for Release"
     )
+
+    # =====================================================
+    # AGENT FLOW
+    # =====================================================
+
+    st.subheader("Agent Execution Flow")
+
+    st.success("✅ Knowledge Agent Completed")
+    st.success("✅ Recommendation Agent Completed")
+    st.success("✅ Validation Agent Completed")
+    st.warning("⏳ Human Approval Pending")
+
+    # =====================================================
+    # OUTPUT
+    # =====================================================
+
+    st.subheader("Knowledge Agent")
+
+    st.write(summary)
 
     st.subheader("Recommendation Agent")
 
@@ -654,51 +651,69 @@ if st.button("Run Analysis"):
 
     st.write(decision_text)
 
-    # ---------------------------
-    # Confidence Display
-    # ---------------------------
-
     st.subheader("Confidence")
 
     st.progress(confidence_pct / 100)
 
-    st.caption(
-        f"{conf['label']} confidence | {conf['reason']}"
+    # =====================================================
+    # HUMAN APPROVAL
+    # =====================================================
+
+    st.subheader("Human Approval Agent")
+
+    reviewer_name = st.text_input(
+        "Approver Name"
     )
 
-# ---------------------------
-# PDF Generation
-# ---------------------------
-
-try:
-
-    pdf_file = generate_pdf(
-        summary,
-        recommendation_text,
-        validation_text,
-        decision_text
+    approval_status = st.selectbox(
+        "Approval Status",
+        [
+            "Approved",
+            "Rejected",
+            "Need Changes"
+        ]
     )
 
-    st.success("PDF generated successfully ✅")
-
-    st.download_button(
-        label="📄 Download Engineering Report PDF",
-        data=pdf_file,
-        file_name="engineering_report.pdf",
-        mime="application/pdf"
+    review_comments = st.text_area(
+        "Approval Comments"
     )
 
-except Exception as e:
+    # =====================================================
+    # PDF GENERATION
+    # =====================================================
 
-    st.error(f"PDF generation failed: {e}")
+    if st.button("Generate Executive PDF Report"):
 
-# ---------------------------
-# Footer
-# ---------------------------
+        pdf_file = generate_pdf(
+            use_case,
+            summary,
+            recommendation_text,
+            validation_text,
+            decision_text,
+            reviewer_name,
+            approval_status,
+            review_comments,
+            confidence_pct,
+            len(uploaded_files),
+            len(combined_text.split())
+        )
+
+        st.success("PDF generated successfully ✅")
+
+        st.download_button(
+            label="📄 Download Executive Engineering Report",
+            data=pdf_file.getvalue(),
+            file_name="engineering_report.pdf",
+            mime="application/pdf"
+        )
+
+# =====================================================
+# FOOTER
+# =====================================================
 
 st.markdown("---")
 
 st.caption(
-    "Flow: Upload → Parsing → Knowledge Agent → "
-    "Recommendation → Validation → Decision → Human Approval"
+    "Unified Agentic Engineering Co-worker Platform | "
+    "RAG + Human Governance + Multi-Agent Workflow"
 )
