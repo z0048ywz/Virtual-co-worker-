@@ -131,11 +131,11 @@ Source:
 <Page/Section if available>
 
 If information is unavailable, explicitly say:
-"Not found in uploaded documents."
+"Not found in uploaded documents."if use_case == "Compressor Specification Summary":
 """
     if use_case == "Compressor Specification Summary":
 
-return f"""
+        return f"""
 Create an executive summary of customer compressor requirements.
 
 Requirements:
