@@ -23,12 +23,15 @@ except Exception:
 # =====================================================
 
 st.set_page_config(
-    page_title="Engineering Automation with Agentic AI",
+    page_title="Virtual Co-worker",
     layout="wide"
 )
 
-st.title("Engineering Automation with Agentic AI")
-st.caption("IIT Delhi – AI for Future Tech Leaders")
+st.title("Virtual Co-worker")
+st.caption("IIT Delhi – AI for Future Tech Leaders 
+            Final exam 
+            Track - 2 Built track 
+            Problem - B4 Problem Generative AI knowledge assistant (RAG)")
 
 # =====================================================
 # API CLIENT
@@ -375,7 +378,7 @@ def generate_pdf(
     p.drawString(
         50,
         750,
-        "Engineering Automation with Agentic AI"
+        "Virtual Co-worker"
     )
 
     p.setFillColorRGB(0, 0, 0)
